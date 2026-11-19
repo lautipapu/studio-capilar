@@ -21,6 +21,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   ].filter((name): name is string => name !== null);
 
   if (missing.length > 0) {
+    if (env.NODE_ENV === "test" || process.env.VITEST) {
+      return {
+        databaseUrl:
+          env.DATABASE_URL?.trim() ||
+          "postgresql://studio:studio@localhost:5432/studio_capilar",
+        databaseUrlTest:
+          env.DATABASE_URL_TEST?.trim() ||
+          "postgresql://studio:studio@localhost:5432/studio_capilar_test",
+        jwtSecret:
+          env.JWT_SECRET?.trim() ||
+          "test-jwt-secret-para-entorno-de-pruebas-12345678",
+        port: 4000,
+        corsOrigin: "http://localhost:5173",
+      };
+    }
     console.error(`Faltan variables de entorno: ${missing.join(", ")}`);
     process.exit(1);
   }
