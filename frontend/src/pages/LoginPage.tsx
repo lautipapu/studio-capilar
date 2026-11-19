@@ -21,7 +21,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       const { token, user } = await authApi.login({ email: email.trim(), password });
-      login(token, user);
+      await login(token, user);
       if (from) {
         navigate(from, { replace: true });
       } else {

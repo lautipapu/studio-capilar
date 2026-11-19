@@ -56,11 +56,45 @@ async function apiFetch<T>(
       data?.error?.message ?? `Error ${response.status}`;
     if (response.status === 401) {
       clearToken();
-      window.location.href = '/ingreso';
+      window.dispatchEvent(new Event('studio:unauthorized'));
     }
     throw new ApiError(code, message, response.status);
   }
 
+  // The API returns resources and collections directly. Normalize them here so
+  // the UI can work with one stable shape (and existing wrapper responses).
+  if (Array.isArray(data)) {
+    if (path.includes('/blocks')) {
+      return { blocks: data.map((block: any) => ({
+        id: block.id,
+        professionalId: block.professionalId ?? block.professional_id,
+        startAt: block.startAt ?? block.start_at,
+        endAt: block.endAt ?? block.end_at,
+        reason: block.reason,
+      })) } as T;
+    }
+    if (path.startsWith('/api/services')) return { services: data } as T;
+    if (path.startsWith('/api/professionals') && !path.includes('/blocks')) return { professionals: data } as T;
+    if (path.startsWith('/api/appointments')) return { appointments: data } as T;
+    if (path.startsWith('/api/clients')) return { clients: data } as T;
+    if (path.includes('/blocks')) return { blocks: data } as T;
+  }
+  if ((options.method === 'POST' || options.method === 'PATCH') && (path === '/api/services' || path.startsWith('/api/services/'))) return (data.service ? data : { service: data }) as T;
+  if ((options.method === 'POST' || options.method === 'PATCH') && /^\/api\/professionals(?:\/[^/]+)?$/.test(path)) return (data.professional ? data : { professional: data }) as T;
+  if (options.method === undefined && /^\/api\/professionals\/[^/]+$/.test(path)) return (data.professional ? data : { professional: data }) as T;
+  if (path.includes('/blocks') && options.method === 'POST') {
+    const block = data.block ?? data;
+    return { block: {
+      id: block.id,
+      professionalId: block.professionalId ?? block.professional_id,
+      startAt: block.startAt ?? block.start_at,
+      endAt: block.endAt ?? block.end_at,
+      reason: block.reason,
+    } } as T;
+  }
+  if (path.endsWith('/schedule') && data.days) return { schedule: data.days } as T;
+  if (path.startsWith('/api/appointments') && options.method !== undefined) return (data.appointment ? data : { appointment: data }) as T;
+  if (path.startsWith('/api/clients/') && options.method === 'PATCH') return (data.client ? data : { client: data }) as T;
   return data as T;
 }
 
@@ -74,6 +108,7 @@ export interface User {
   email: string;
   role: Role;
   phone?: string;
+  professionalId?: string;
 }
 
 export interface AuthResponse {
@@ -84,7 +119,7 @@ export interface AuthResponse {
 export interface Service {
   id: string;
   name: string;
-  durationMin: number;
+  durationMinutes: number;
   priceCents: number;
   active: boolean;
 }
@@ -158,17 +193,17 @@ export const servicesApi = {
       `/api/services${includeInactive ? '?includeInactive=true' : ''}`,
     ),
 
-  create: (body: { name: string; durationMin: number; priceCents: number }) =>
+  create: (body: { name: string; durationMinutes: number; priceCents: number }) =>
     apiFetch<{ service: Service }>('/api/services', { method: 'POST', body: JSON.stringify(body) }),
 
-  update: (id: string, body: Partial<{ name: string; durationMin: number; priceCents: number; active: boolean }>) =>
+  update: (id: string, body: Partial<{ name: string; durationMinutes: number; priceCents: number; active: boolean }>) =>
     apiFetch<{ service: Service }>(`/api/services/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 };
 
 // ── Professionals ─────────────────────────────────────────────────────────────
 
 export const professionalsApi = {
-  list: () => apiFetch<{ professionals: Professional[] }>('/api/professionals'),
+  list: (includeInactive = false) => apiFetch<{ professionals: Professional[] }>(`/api/professionals${includeInactive ? '?includeInactive=true' : ''}`),
 
   get: (id: string) =>
     apiFetch<{ professional: Professional }>(`/api/professionals/${id}`),
@@ -180,12 +215,12 @@ export const professionalsApi = {
     apiFetch<{ professional: Professional }>(`/api/professionals/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 
   getSchedule: (id: string) =>
-    apiFetch<{ schedule: ScheduleEntry[] }>(`/api/professionals/${id}/schedule`),
+    apiFetch<{ professional: Professional }>(`/api/professionals/${id}`),
 
   setSchedule: (id: string, schedule: ScheduleEntry[]) =>
-    apiFetch<{ schedule: ScheduleEntry[] }>(`/api/professionals/${id}/schedule`, {
+    apiFetch<{ days: ScheduleEntry[] }>(`/api/professionals/${id}/schedule`, {
       method: 'PUT',
-      body: JSON.stringify({ schedule }),
+      body: JSON.stringify({ days: schedule }),
     }),
 
   listBlocks: (id: string, from: string, to: string) =>
@@ -242,7 +277,7 @@ export const appointmentsApi = {
 // ── Clients ───────────────────────────────────────────────────────────────────
 
 export const clientsApi = {
-  list: () => apiFetch<{ clients: Client[] }>('/api/clients'),
+  list: (includeInactive = false) => apiFetch<{ clients: Client[] }>(`/api/clients${includeInactive ? '?includeInactive=true' : ''}`),
 
   update: (id: string, body: Partial<{ name: string; phone: string; active: boolean }>) =>
     apiFetch<{ client: Client }>(`/api/clients/${id}`, {

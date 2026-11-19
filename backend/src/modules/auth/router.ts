@@ -66,6 +66,7 @@ export function createAuthRouter(service = new AuthService()): Router {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        ...(user.professionalId ? { professionalId: user.professionalId } : {}),
       },
     });
   });

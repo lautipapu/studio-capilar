@@ -36,7 +36,7 @@ export function RegisterPage() {
         password: form.password,
         phone: form.phone.trim() || undefined,
       });
-      login(token, user);
+      await login(token, user);
       navigate('/');
     } catch (err) {
       setError(err);
@@ -89,7 +89,7 @@ export function RegisterPage() {
               onChange={set('password')}
               required
             />
-            <span className="form-hint">Al menos 8 caracteres, una letra y un número.</span>
+            <span className="form-hint">Mínimo 8 caracteres, una letra y un número.</span>
           </div>
 
           <div className="form-group">

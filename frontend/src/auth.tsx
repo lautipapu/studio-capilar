@@ -11,7 +11,7 @@ interface AuthContextValue {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (token: string, user: User) => void;
+  login: (token: string, user: User) => Promise<void>;
   logout: () => void;
 }
 
@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   token: null,
   loading: true,
-  login: () => {},
+  login: async () => {},
   logout: () => {},
 });
 
@@ -29,10 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const onUnauthorized = () => {
+      setTokenState(null);
+      setUser(null);
+      setLoading(false);
+    };
+    window.addEventListener('studio:unauthorized', onUnauthorized);
     const stored = getToken();
     if (!stored) {
       setLoading(false);
-      return;
+      return () => window.removeEventListener('studio:unauthorized', onUnauthorized);
     }
     setTokenState(stored);
     authApi
@@ -43,12 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTokenState(null);
       })
       .finally(() => setLoading(false));
+    return () => window.removeEventListener('studio:unauthorized', onUnauthorized);
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
+  const login = async (newToken: string, newUser: User) => {
     setToken(newToken);
     setTokenState(newToken);
     setUser(newUser);
+    if (newUser.role === 'profesional') {
+      try {
+        const { user: currentUser } = await authApi.me();
+        setUser(currentUser);
+      } catch {
+        // Keep the authenticated profile; protected requests will surface API errors.
+      }
+    }
   };
 
   const logout = () => {
@@ -59,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, logout }}>
-      {children}
+      {loading ? null : children}
     </AuthContext.Provider>
   );
 }
