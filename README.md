@@ -6,9 +6,9 @@ El comportamiento está en `spec.md`. Las decisiones cerradas, en `decisiones.md
 
 ## Estado
 
-La aplicación todavía no está implementada. Hay documentación, reglas de Cursor, el esquema previsto y el esqueleto de `backend/` y `frontend/`.
+La aplicación de backend y frontend está implementada. El build de producción pasó y la suite de interfaz aprobó 21 pruebas. La suite backend aprobó 12 pruebas; 50 pruebas que requieren PostgreSQL se omitieron porque no había una base disponible en este entorno.
 
-- No se ejecutó la suite de pruebas.
+- La integración completa contra una API conectada a PostgreSQL todavía no se verificó en navegador.
 - No hay versión desplegada.
 - No hay URL pública.
 
@@ -23,7 +23,7 @@ La contraseña `studio` del archivo `docker-compose.yml` sirve solo para esa bas
 
 ## Cómo levantarlo
 
-Estos comandos quedan definidos para cuando las tareas T01 a T13 existan. Hoy `npm run dev:backend` falla porque todavía no está `backend/src/index.ts`.
+Con las variables de entorno cargadas y PostgreSQL disponible, estos comandos levantan el sistema local:
 
 ```bash
 docker compose up -d
