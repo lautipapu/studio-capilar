@@ -1,0 +1,15 @@
+---
+description: Convenciones del backend Express de Studio Capilar
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# Backend
+
+- Módulos en `src/modules/<nombre>/{router,service,repository}.ts`. El router valida con Zod, el servicio aplica las RN y el repositorio ejecuta SQL.
+- Exportar `app` sin escuchar, para Supertest. `src/index.ts` solo hace `listen`.
+- Errores como `{ error: { code, message } }`. Solapamiento 409 `OVERLAP`. Regla de negocio 422. Rol incorrecto 403.
+- Toda escritura de agenda abre transacción y toma `SELECT … FROM professionals WHERE id = $1 FOR UPDATE` antes de buscar solapes.
+- Traducir el código PostgreSQL `23P01` a `OVERLAP`.
+- Comparar «ahora» con el reloj inyectado, no con `now()` de SQL.
+- No loguear contraseñas, hashes ni JWT. No poner un `JWT_SECRET` por defecto en el código.

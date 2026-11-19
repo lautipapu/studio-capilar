@@ -1,0 +1,16 @@
+---
+description: Reglas de trabajo de Studio Capilar para cualquier cambio
+alwaysApply: true
+---
+
+# Studio Capilar
+
+Sistema académico de turnos. La fuente de verdad es `spec.md`. Después `plan.md`, `decisiones.md` y `tasks.md`. No reabrir decisiones cerradas.
+
+- Textos de interfaz y errores en español. Código, SQL y JSON en inglés. Roles y estados con los valores de la spec.
+- No sumar pantallas, endpoints ni reglas que la spec no pida.
+- Aplicar cada RN en el servidor. La interfaz no es la única barrera.
+- No dar una tarea por terminada si sus pruebas no corrieron en verde. No afirmar que hay despliegue o pruebas hechas si no se ejecutaron en esta sesión.
+- No commitear `.env`, contraseñas, JWT ni cadenas de Neon o Render. Los ejemplos viven en `.env.example`.
+- Zona del local: `America/Argentina/Buenos_Aires`. Precios en centavos ARS. Intervalos `[inicio, fin)`.
+- Ante un vacío de negocio, parar y anotarlo en `preguntas-abiertas.md`. No inventar una regla.

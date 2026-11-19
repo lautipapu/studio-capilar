@@ -1,0 +1,14 @@
+---
+description: Cómo escribir las pruebas de Studio Capilar
+globs: "**/*.{test,spec}.{ts,tsx}"
+alwaysApply: false
+---
+
+# Pruebas
+
+- Backend con Vitest y Supertest, contra PostgreSQL de `DATABASE_URL_TEST`, no contra mocks del repositorio.
+- Nombrar cada caso con su id `CP-xx` y la regla `RNn` que cubre.
+- Fijar el reloj inyectado. No depender de la hora real del sistema.
+- El caso de dos reservas simultáneas del mismo horario debe existir y esperar un solo 201.
+- Vaciar las tablas antes de cada prueba. No correr archivos de backend en paralelo.
+- Una tarea no se marca hecha si `npm test` de esa parte falla o no se ejecutó.

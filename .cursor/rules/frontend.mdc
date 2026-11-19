@@ -1,0 +1,14 @@
+---
+description: Convenciones del frontend React de Studio Capilar
+globs: frontend/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Frontend
+
+- React, Vite y React Router. Sin biblioteca de componentes ni estado global de terceros.
+- Guardar el JWT en `localStorage` con la clave `studio_capilar_token`. En local, llamar a `/api` y dejar que Vite haga de proxy.
+- Usar `VITE_API_URL` solo cuando tenga valor (producción).
+- Ocultar acciones que el rol no puede hacer, y además mostrar el `message` que devuelve el backend si la API rechaza.
+- No recalcular en el cliente si un turno se puede guardar: la disponibilidad sale de `GET /availability` y la reserva de `POST /appointments`.
+- Rutas de la spec: `/`, `/registro`, `/ingreso`, `/reservar`, `/mis-turnos`, `/agenda`, `/admin`.

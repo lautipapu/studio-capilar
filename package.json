@@ -1,0 +1,22 @@
+{
+  "name": "studio-capilar",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Gestión de turnos para la peluquería Studio Capilar.",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "migrate": "npm run migrate -w backend",
+    "seed": "npm run seed -w backend",
+    "test": "npm run test -w backend",
+    "test:frontend": "npm run test -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend"
+  }
+}
