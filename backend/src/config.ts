@@ -1,5 +1,6 @@
 export type AppConfig = {
   databaseUrl: string;
+  databaseUrlTest?: string;
   jwtSecret: string;
   port: number;
   corsOrigin: string;
@@ -40,6 +41,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 
   return {
     databaseUrl,
+    databaseUrlTest: env.DATABASE_URL_TEST?.trim() || undefined,
     jwtSecret,
     port,
     corsOrigin: env.CORS_ORIGIN?.trim() || "http://localhost:5173",
