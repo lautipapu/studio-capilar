@@ -20,9 +20,10 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -67,7 +68,7 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
       clientToken = createToken({ id: cRes.rows[0]!.id, role: "cliente" });
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "Crear un bloqueo con fin pasado o fin menor al inicio responde 422 INVALID_BLOCK",
       async () => {
         // Fin anterior al inicio
@@ -94,7 +95,7 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-17: Un cliente no puede crear bloqueos y recibe 403 FORBIDDEN",
       async () => {
         const res = await request(app)
@@ -110,7 +111,7 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-16: No se puede crear un bloqueo encima de un turno reservado (409 OVERLAP)",
       async () => {
         const pool = getTestPool();
@@ -148,7 +149,7 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "Borrar un bloqueo ya terminado responde 422 INVALID_BLOCK",
       async () => {
         const pool = getTestPool();

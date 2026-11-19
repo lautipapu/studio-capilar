@@ -20,9 +20,10 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -89,7 +90,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
       serviceId = s.rows[0]!.id;
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-30: Cancelación a tiempo (exactamente 24 horas antes) pasa a 'cancelado' y libera el horario",
       async () => {
         const pool = getTestPool();
@@ -123,7 +124,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-31: Cancelación tardía (< 24 horas) responde 422 LATE_CANCEL y sigue reservado",
       async () => {
         const pool = getTestPool();
@@ -152,7 +153,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-32: El administrador puede cancelar tardíamente (en 1 hora) y queda cancelado",
       async () => {
         const pool = getTestPool();
@@ -176,7 +177,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-33: El profesional no cancela turnos y recibe 403 FORBIDDEN",
       async () => {
         const pool = getTestPool();
@@ -198,7 +199,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-34: Un cliente no puede cancelar un turno ajeno y recibe 403 FORBIDDEN",
       async () => {
         const pool = getTestPool();

@@ -17,9 +17,10 @@ describe("T09 — Consulta de Turnos según Rol (CP-29)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -41,7 +42,7 @@ describe("T09 — Consulta de Turnos según Rol (CP-29)", () => {
   });
 
   describe("Integración con base de datos real", () => {
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-29: Cada rol ve únicamente los turnos que le corresponden",
       async () => {
         const pool = getTestPool();

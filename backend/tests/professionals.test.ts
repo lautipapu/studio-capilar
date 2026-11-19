@@ -17,9 +17,10 @@ describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", (
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -48,7 +49,7 @@ describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", (
       adminToken = createToken({ id: adminRes.rows[0]!.id, role: "administrador" });
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-11: Alta con horario inicial de lunes a sábado y domingo cerrado",
       async () => {
         const createRes = await request(app)
@@ -83,7 +84,7 @@ describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", (
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-12: Desactivar profesional impide ingreso y lo oculta del público",
       async () => {
         const createRes = await request(app)
@@ -123,7 +124,7 @@ describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", (
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-13 (persistencia): Reemplazo de horario deja únicamente el martes 10:00-14:00",
       async () => {
         const createRes = await request(app)
@@ -159,7 +160,7 @@ describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", (
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "Un profesional no puede reemplazar el horario de otro profesional (403 FORBIDDEN)",
       async () => {
         const pool = getTestPool();

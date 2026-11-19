@@ -20,9 +20,10 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -92,7 +93,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
       serviceId = s.rows[0]!.id;
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-35: Completar desde el inicio (startAt <= reloj) pasa a completado",
       async () => {
         const pool = getTestPool();
@@ -115,7 +116,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-36: Cerrar antes de tiempo (startAt futuro) responde 422 INVALID_TRANSITION y sigue reservado",
       async () => {
         const pool = getTestPool();
@@ -154,7 +155,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-37: Ausente (no-show) en turno ya iniciado pasa a ausente",
       async () => {
         const pool = getTestPool();
@@ -177,7 +178,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-38: Los estados finales no permiten transiciones (turno cancelado no se completa)",
       async () => {
         const pool = getTestPool();
@@ -199,7 +200,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-39: Un profesional ajeno no puede cerrar el turno (403 FORBIDDEN)",
       async () => {
         const pool = getTestPool();

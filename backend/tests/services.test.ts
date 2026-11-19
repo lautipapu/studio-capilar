@@ -17,9 +17,10 @@ describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -71,7 +72,7 @@ describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
       clientToken = createToken({ id: clientRes.rows[0]!.id, role: "cliente" });
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-07: Catálogo público sin token solo devuelve servicios activos",
       async () => {
         const pool = getTestPool();
@@ -92,7 +93,7 @@ describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-08: Administrador da de alta y baja lógica a un servicio",
       async () => {
         // Alta
@@ -133,7 +134,7 @@ describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-09: Duración de 20 minutos responde 400 y no se guarda",
       async () => {
         const res = await request(app)
@@ -150,7 +151,7 @@ describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-10: Un cliente no administra servicios y recibe 403 FORBIDDEN",
       async () => {
         const res = await request(app)

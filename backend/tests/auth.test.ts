@@ -15,9 +15,10 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -66,7 +67,7 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
   });
 
   describe("Integración con base de datos real", () => {
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-01: Registro válido fuerza rol cliente e ignora role: administrador",
       async () => {
         const res = await request(app).post("/api/auth/register").send({
@@ -92,7 +93,7 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-02: Email repetido (incluso con otras mayúsculas) responde 409 EMAIL_TAKEN",
       async () => {
         await request(app).post("/api/auth/register").send({
@@ -112,7 +113,7 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-04: Ingreso válido responde 200 y token aceptado por /api/auth/me",
       async () => {
         await request(app).post("/api/auth/register").send({
@@ -138,7 +139,7 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-05: Credenciales incorrectas responde 401 INVALID_CREDENTIALS",
       async () => {
         await request(app).post("/api/auth/register").send({
@@ -167,7 +168,7 @@ describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-06: Usuario inactivo responde 401 INVALID_CREDENTIALS al intentar ingresar",
       async () => {
         const regRes = await request(app).post("/api/auth/register").send({

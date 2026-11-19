@@ -17,9 +17,10 @@ describe("T12 — Administración de Clientes (CP-40, CP-41)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -66,7 +67,7 @@ describe("T12 — Administración de Clientes (CP-40, CP-41)", () => {
       client2Id = c2.rows[0]!.id;
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-40: Listado y baja lógica de cliente impide que figure activo y bloquea su login",
       async () => {
         // 1. Listar activos: deben aparecer ambos clientes
@@ -105,7 +106,7 @@ describe("T12 — Administración de Clientes (CP-40, CP-41)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-41: Un cliente no puede listar clientes y recibe 403 FORBIDDEN",
       async () => {
         const res = await request(app)
@@ -117,7 +118,7 @@ describe("T12 — Administración de Clientes (CP-40, CP-41)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "PATCH sobre un ID que no es cliente responde 404 NOT_FOUND",
       async () => {
         const pool = getTestPool();

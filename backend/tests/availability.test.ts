@@ -19,9 +19,10 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -77,7 +78,7 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
       clientId = cRes.rows[0]!.id;
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-13: Martes 10:00-14:00 con servicio de 60 min devuelve inicios 10:00 a 13:00 en grilla de 15 min; miércoles vacío",
       async () => {
         // Martes 2026-12-01
@@ -102,7 +103,7 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-15: Un bloqueo saca los huecos solapados de la disponibilidad",
       async () => {
         const pool = getTestPool();
@@ -133,7 +134,7 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-18: La lista respeta ocupación de turnos y grilla de 15 minutos",
       async () => {
         const pool = getTestPool();
@@ -170,7 +171,7 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "Fecha fuera del horizonte (hoy + 31 días) responde 200 con lista vacía",
       async () => {
         const res = await request(app).get(
