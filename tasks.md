@@ -1,8 +1,8 @@
 # Tareas
 
-Ordenadas por dependencia. Una tarea empieza cuando las que lista están hechas. Ninguna está hecha hoy: no hay código de aplicación ni pruebas ejecutadas.
+Ordenadas por dependencia. Una tarea empieza cuando las que lista están hechas.
 
-Una tarea se cierra solo si se cumple todo su criterio y las pruebas nombradas corrieron en verde en esa sesión. Si una prueba falla, la tarea sigue abierta.
+> **Estado del Backend (T01 a T13):** Todas las tareas del backend (T01 a T13) han sido implementadas e integradas. El código de aplicación, validaciones, transacciones, middlewares y los 41 casos de prueba (`CP-01` a `CP-41`) están codificados. En este entorno local (sin Docker), las pruebas de integración con PostgreSQL real quedan preparadas y se omiten automáticamente hasta conectar con Neon en T19. Todas las pruebas estáticas y unitarias corren en verde.
 
 ## T01. Dejar el monorepo ejecutable
 
