@@ -7,12 +7,29 @@ const { Pool } = pg;
 
 export const TEST_DATABASE_URL =
   process.env.DATABASE_URL_TEST?.trim() ||
-  process.env.DATABASE_URL?.trim() ||
   "postgresql://studio:studio@localhost:5432/studio_capilar_test";
+
+function assertTestDatabaseIsNotPrimary(): void {
+  const primaryUrl = process.env.DATABASE_URL?.trim();
+  if (!primaryUrl) return;
+
+  const testDatabase = new URL(TEST_DATABASE_URL);
+  const primaryDatabase = new URL(primaryUrl);
+  const testPort = testDatabase.port || "5432";
+  const primaryPort = primaryDatabase.port || "5432";
+  if (
+    testDatabase.hostname === primaryDatabase.hostname &&
+    testPort === primaryPort &&
+    testDatabase.pathname === primaryDatabase.pathname
+  ) {
+    throw new Error("La base de pruebas coincide con DATABASE_URL; configure una base de pruebas separada.");
+  }
+}
 
 let testPoolInstance: pg.Pool | null = null;
 
 export function getTestPool(): pg.Pool {
+  assertTestDatabaseIsNotPrimary();
   if (!testPoolInstance) {
     const isSslNeeded =
       TEST_DATABASE_URL.includes("sslmode=require") ||

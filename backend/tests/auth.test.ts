@@ -11,7 +11,7 @@ import {
 
 describe("T03 — Módulo Auth (CP-01 a CP-06)", () => {
   let dbAvailable = false;
-  const app = createApp();
+  const app = createApp({ pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

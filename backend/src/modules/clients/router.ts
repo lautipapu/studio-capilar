@@ -1,9 +1,12 @@
 import { Router } from "express";
+import type { Pool } from "pg";
 import { z } from "zod";
 import { authMiddleware, requireRole } from "../../middleware/auth.js";
 import { ClientsService } from "./service.js";
+import { ClientsRepository } from "./repository.js";
 
-export function createClientsRouter(service = new ClientsService()): Router {
+export function createClientsRouter(service?: ClientsService, pool?: Pool): Router {
+  service ??= new ClientsService(new ClientsRepository(pool));
   const router = Router();
 
   const updateSchema = z.object({
@@ -15,7 +18,7 @@ export function createClientsRouter(service = new ClientsService()): Router {
   // GET /api/clients (solo admin)
   router.get(
     "/",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {
@@ -31,7 +34,7 @@ export function createClientsRouter(service = new ClientsService()): Router {
   // PATCH /api/clients/:id (solo admin)
   router.patch(
     "/:id",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {

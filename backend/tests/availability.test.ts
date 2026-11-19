@@ -15,7 +15,7 @@ describe("T07 — Motor de Disponibilidad (CP-13, CP-15, CP-18)", () => {
   let dbAvailable = false;
   // Martes 1 de Diciembre de 2026, 08:00 hora de Buenos Aires (11:00 UTC)
   const fixedClock = createFixedClock("2026-12-01T11:00:00Z");
-  const app = createApp({ clock: fixedClock });
+  const app = createApp({ clock: fixedClock, pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

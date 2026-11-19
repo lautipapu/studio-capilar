@@ -22,9 +22,8 @@ describe("T02 — Esquema y migraciones de PostgreSQL", () => {
     dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
       console.warn(
-        "\n[AVISO T02] Base de datos PostgreSQL no detectada en " +
-          TEST_DATABASE_URL +
-          ".\nDocker no está instalado en este entorno local. " +
+        "\n[AVISO T02] Base de datos PostgreSQL de pruebas no disponible. " +
+          "Docker no está instalado en este entorno local. " +
           "Las pruebas de integración con PostgreSQL real se omiten y quedan listas para cuando se configure Neon/Postgres.\n",
       );
     }

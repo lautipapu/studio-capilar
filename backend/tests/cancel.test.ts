@@ -16,7 +16,7 @@ describe("T10 — Cancelación de Turnos (CP-30 a CP-34)", () => {
   let dbAvailable = false;
   // Reloj fijo: Martes 1 de Diciembre de 2026, 10:00:00 UTC
   const fixedClock = createFixedClock("2026-12-01T10:00:00Z");
-  const app = createApp({ clock: fixedClock });
+  const app = createApp({ clock: fixedClock, pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

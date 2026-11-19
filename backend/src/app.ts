@@ -41,11 +41,11 @@ export function createApp(options: AppOptions = {}): Express {
   });
 
   // Módulos de la API
-  app.use("/api/auth", createAuthRouter());
-  app.use("/api/services", createServicesRouter());
-  app.use("/api/professionals", createProfessionalsRouter());
-  app.use("/api/appointments", createAppointmentsRouter());
-  app.use("/api/clients", createClientsRouter());
+  app.use("/api/auth", createAuthRouter(undefined, options.pool));
+  app.use("/api/services", createServicesRouter(undefined, options.pool));
+  app.use("/api/professionals", createProfessionalsRouter(undefined, options.pool));
+  app.use("/api/appointments", createAppointmentsRouter(undefined, options.pool));
+  app.use("/api/clients", createClientsRouter(undefined, options.pool));
 
   // Manejo de 404 para rutas no existentes
   app.use((_req, _res, next) => {

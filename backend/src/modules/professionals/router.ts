@@ -1,12 +1,21 @@
 import { Router } from "express";
+import type { Pool } from "pg";
 import { z } from "zod";
 import { forbidden, validationError } from "../../errors.js";
 import { authMiddleware, requireRole } from "../../middleware/auth.js";
 import { ProfessionalsService } from "./service.js";
+import { ProfessionalsRepository } from "./repository.js";
+import { ServicesRepository } from "../services/repository.js";
 
 export function createProfessionalsRouter(
-  service = new ProfessionalsService(),
+  service?: ProfessionalsService,
+  pool?: Pool,
 ): Router {
+  service ??= new ProfessionalsService(
+    new ProfessionalsRepository(pool),
+    new ServicesRepository(pool),
+    pool,
+  );
   const router = Router();
 
   const createProfSchema = z.object({
@@ -66,7 +75,7 @@ export function createProfessionalsRouter(
   }
 
   // GET /api/professionals
-  router.get("/", authMiddleware(false), async (req, res, next) => {
+  router.get("/", authMiddleware(false, pool), async (req, res, next) => {
     try {
       const includeInactive = req.query.includeInactive === "true";
       if (includeInactive) {
@@ -105,7 +114,7 @@ export function createProfessionalsRouter(
   });
 
   // GET /api/professionals/:id/blocks (admin o titular)
-  router.get("/:id/blocks", authMiddleware(true), async (req, res, next) => {
+  router.get("/:id/blocks", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       checkTitularOrAdmin(req, id);
@@ -121,7 +130,7 @@ export function createProfessionalsRouter(
   });
 
   // POST /api/professionals/:id/blocks (admin o titular)
-  router.post("/:id/blocks", authMiddleware(true), async (req, res, next) => {
+  router.post("/:id/blocks", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       checkTitularOrAdmin(req, id);
@@ -141,7 +150,7 @@ export function createProfessionalsRouter(
   // DELETE /api/professionals/:id/blocks/:blockId (admin o titular)
   router.delete(
     "/:id/blocks/:blockId",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     async (req, res, next) => {
       try {
         const id = req.params.id!;
@@ -156,7 +165,7 @@ export function createProfessionalsRouter(
   );
 
   // PUT /api/professionals/:id/schedule (admin o titular)
-  router.put("/:id/schedule", authMiddleware(true), async (req, res, next) => {
+  router.put("/:id/schedule", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       checkTitularOrAdmin(req, id);
@@ -169,7 +178,7 @@ export function createProfessionalsRouter(
   });
 
   // GET /api/professionals/:id
-  router.get("/:id", authMiddleware(false), async (req, res, next) => {
+  router.get("/:id", authMiddleware(false, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       const isAdmin = req.user?.role === "administrador";
@@ -183,7 +192,7 @@ export function createProfessionalsRouter(
   // POST /api/professionals (admin)
   router.post(
     "/",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {
@@ -199,7 +208,7 @@ export function createProfessionalsRouter(
   // PATCH /api/professionals/:id (admin)
   router.patch(
     "/:id",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {

@@ -13,7 +13,7 @@ import {
 
 describe("T09 — Consulta de Turnos según Rol (CP-29)", () => {
   let dbAvailable = false;
-  const app = createApp();
+  const app = createApp({ pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

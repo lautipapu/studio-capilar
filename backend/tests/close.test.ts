@@ -16,7 +16,7 @@ describe("T11 — Cierre de Turnos: Completar y Ausente (CP-35 a CP-39)", () => 
   let dbAvailable = false;
   // Reloj fijo: 2026-12-01 15:00:00 UTC
   const fixedClock = createFixedClock("2026-12-01T15:00:00Z");
-  const app = createApp({ clock: fixedClock });
+  const app = createApp({ clock: fixedClock, pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

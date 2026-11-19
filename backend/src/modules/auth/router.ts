@@ -1,9 +1,12 @@
 import { Router } from "express";
+import type { Pool } from "pg";
 import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth.js";
 import { AuthService } from "./service.js";
+import { AuthRepository } from "./repository.js";
 
-export function createAuthRouter(service = new AuthService()): Router {
+export function createAuthRouter(service?: AuthService, pool?: Pool): Router {
+  service ??= new AuthService(new AuthRepository(pool));
   const router = Router();
 
   const registerSchema = z.object({
@@ -57,7 +60,7 @@ export function createAuthRouter(service = new AuthService()): Router {
     }
   });
 
-  router.get("/me", authMiddleware(true), (req, res) => {
+  router.get("/me", authMiddleware(true, pool), (req, res) => {
     const user = req.user!;
     res.status(200).json({
       user: {

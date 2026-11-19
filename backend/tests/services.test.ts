@@ -13,7 +13,7 @@ import {
 
 describe("T04 — Módulo de Servicios (CP-07 a CP-10)", () => {
   let dbAvailable = false;
-  const app = createApp();
+  const app = createApp({ pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

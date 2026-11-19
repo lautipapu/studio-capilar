@@ -1,11 +1,12 @@
 import { Router } from "express";
+import type { Pool } from "pg";
 import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth.js";
 import { AppointmentsService } from "./service.js";
+import { AppointmentsRepository } from "./repository.js";
 
-export function createAppointmentsRouter(
-  service = new AppointmentsService(),
-): Router {
+export function createAppointmentsRouter(service?: AppointmentsService, pool?: Pool): Router {
+  service ??= new AppointmentsService(new AppointmentsRepository(pool), pool);
   const router = Router();
 
   const createSchema = z.object({
@@ -20,7 +21,7 @@ export function createAppointmentsRouter(
   });
 
   // POST /api/appointments (cliente o admin)
-  router.post("/", authMiddleware(true), async (req, res, next) => {
+  router.post("/", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const data = createSchema.parse(req.body);
       const app = await service.create(data, req.user!, req.clock);
@@ -31,7 +32,7 @@ export function createAppointmentsRouter(
   });
 
   // GET /api/appointments (autenticado, filtrado según rol)
-  router.get("/", authMiddleware(true), async (req, res, next) => {
+  router.get("/", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const { from, to, status, clientId, professionalId } = req.query;
       const list = await service.list(
@@ -53,7 +54,7 @@ export function createAppointmentsRouter(
   });
 
   // GET /api/appointments/:id (autenticado, comprueba titular)
-  router.get("/:id", authMiddleware(true), async (req, res, next) => {
+  router.get("/:id", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       const app = await service.getById(id, req.user!);
@@ -64,7 +65,7 @@ export function createAppointmentsRouter(
   });
 
   // POST /api/appointments/:id/cancel
-  router.post("/:id/cancel", authMiddleware(true), async (req, res, next) => {
+  router.post("/:id/cancel", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       const { reason } = cancelSchema.parse(req.body || {});
@@ -81,7 +82,7 @@ export function createAppointmentsRouter(
   });
 
   // POST /api/appointments/:id/complete
-  router.post("/:id/complete", authMiddleware(true), async (req, res, next) => {
+  router.post("/:id/complete", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       const app = await service.complete(id, req.user!, req.clock);
@@ -92,7 +93,7 @@ export function createAppointmentsRouter(
   });
 
   // POST /api/appointments/:id/no-show
-  router.post("/:id/no-show", authMiddleware(true), async (req, res, next) => {
+  router.post("/:id/no-show", authMiddleware(true, pool), async (req, res, next) => {
     try {
       const id = req.params.id!;
       const app = await service.noShow(id, req.user!, req.clock);

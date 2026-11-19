@@ -1,10 +1,13 @@
 import { Router } from "express";
+import type { Pool } from "pg";
 import { z } from "zod";
 import { forbidden } from "../../errors.js";
 import { authMiddleware, requireRole } from "../../middleware/auth.js";
 import { ServicesService } from "./service.js";
+import { ServicesRepository } from "./repository.js";
 
-export function createServicesRouter(service = new ServicesService()): Router {
+export function createServicesRouter(service?: ServicesService, pool?: Pool): Router {
+  service ??= new ServicesService(new ServicesRepository(pool));
   const router = Router();
 
   const createSchema = z.object({
@@ -50,7 +53,7 @@ export function createServicesRouter(service = new ServicesService()): Router {
   });
 
   // GET /api/services
-  router.get("/", authMiddleware(false), async (req, res, next) => {
+  router.get("/", authMiddleware(false, pool), async (req, res, next) => {
     try {
       const includeInactive = req.query.includeInactive === "true";
       if (includeInactive) {
@@ -68,7 +71,7 @@ export function createServicesRouter(service = new ServicesService()): Router {
   // POST /api/services (solo admin)
   router.post(
     "/",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {
@@ -84,7 +87,7 @@ export function createServicesRouter(service = new ServicesService()): Router {
   // PATCH /api/services/:id (solo admin)
   router.patch(
     "/:id",
-    authMiddleware(true),
+    authMiddleware(true, pool),
     requireRole("administrador"),
     async (req, res, next) => {
       try {

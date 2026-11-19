@@ -16,7 +16,7 @@ describe("T06 — Módulo de Bloqueos (CP-16, CP-17 y validaciones)", () => {
   let dbAvailable = false;
   // Reloj fijo: 2026-12-01 08:00 UTC
   const fixedClock = createFixedClock("2026-12-01T08:00:00Z");
-  const app = createApp({ clock: fixedClock });
+  const app = createApp({ clock: fixedClock, pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

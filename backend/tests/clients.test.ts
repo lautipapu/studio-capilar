@@ -13,7 +13,7 @@ import {
 
 describe("T12 — Administración de Clientes (CP-40, CP-41)", () => {
   let dbAvailable = false;
-  const app = createApp();
+  const app = createApp({ pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

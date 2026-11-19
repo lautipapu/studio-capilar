@@ -13,7 +13,7 @@ import {
 
 describe("T05 — Módulo de Profesionales y Horario Semanal (CP-11 a CP-13)", () => {
   let dbAvailable = false;
-  const app = createApp();
+  const app = createApp({ pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();

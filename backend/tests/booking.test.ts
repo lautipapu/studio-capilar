@@ -16,13 +16,14 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
   let dbAvailable = false;
   // Reloj fijo: Martes 1 de Diciembre de 2026, 08:00 hora de Buenos Aires (11:00 UTC)
   const fixedClock = createFixedClock("2026-12-01T11:00:00Z");
-  const app = createApp({ clock: fixedClock });
+  const app = createApp({ clock: fixedClock, pool: getTestPool() });
 
   beforeAll(async () => {
     dbAvailable = await isDatabaseAvailable();
-    if (dbAvailable) {
-      await setupTestDatabase();
+    if (!dbAvailable) {
+      throw new Error("La base de datos de pruebas no está disponible; no se pueden ejecutar las pruebas de reservas.");
     }
+    await setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -95,7 +96,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       serviceId = sRes.rows[0]!.id;
     });
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-19: Reserva válida copia precio y duración del catálogo e ignora datos extras del cliente",
       async () => {
         // 10:00 hora local de Buenos Aires = 13:00 UTC
@@ -119,7 +120,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-20: Inicio anterior o igual al reloj responde 422 PAST_DATE",
       async () => {
         // Reloj fijo: 11:00 UTC. Se intenta reservar a las 10:00 UTC (pasado)
@@ -137,7 +138,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-21: Servicio inactivo responde 422 INACTIVE_SERVICE",
       async () => {
         const pool = getTestPool();
@@ -159,7 +160,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-22: Cliente inactivo responde 422 INACTIVE al reservar",
       async () => {
         const pool = getTestPool();
@@ -183,7 +184,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-23: Inicio más allá de hoy + 30 días responde 422 OUTSIDE_HORIZON",
       async () => {
         // Hoy es 2026-12-01. Hoy + 31 días es 2027-01-01
@@ -201,7 +202,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-24: Inicio fuera de grilla (ej. 10:10) responde 422 INVALID_SLOT",
       async () => {
         // 10:10 hora de Buenos Aires = 13:10 UTC
@@ -219,7 +220,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-14: Reserva fuera de horario laboral responde 422 OUTSIDE_WORKING_HOURS",
       async () => {
         // El horario termina a las 14:00 (17:00 UTC). Un turno de 45m a las 13:30 (16:30 UTC) termina 17:15 UTC (fuera de horario)
@@ -237,7 +238,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-25: Turno solapado responde 409 OVERLAP",
       async () => {
         // Primer cliente reserva 10:00 a 10:45 local (13:00 a 13:45 UTC)
@@ -265,7 +266,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-26: Turno que solo toca el extremo responde 201 (no es solape)",
       async () => {
         // Primer turno: 13:00 a 13:45 UTC
@@ -292,7 +293,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-27: Dos reservas simultáneas (Promise.all) dejan exactamente 1 turno y responden 201 y 409",
       async () => {
         const targetSlot = "2026-12-01T14:00:00.000Z";
@@ -333,7 +334,7 @@ describe("T08 — Reservas y Concurrencia (CP-14, CP-19 a CP-28)", () => {
       },
     );
 
-    it.skipIf(!dbAvailable)(
+    it(
       "CP-28: El cliente no puede reservar para otro (responde 403 FORBIDDEN sin crear turno)",
       async () => {
         const res = await request(app)
