@@ -51,7 +51,7 @@ export function AgendaPage() {
   const [blockForm, setBlockForm] = useState({ startAt: '', endAt: '', reason: '' });
   const [blockSaving, setBlockSaving] = useState(false);
 
-  const profId = user?.id ?? '';
+  const profId = user?.professionalId ?? '';
 
   useEffect(() => {
     if (!profId) return;
@@ -71,7 +71,7 @@ export function AgendaPage() {
         const s = r.professional.schedule ?? [];
         setSchedule(s);
         setSchedDraft(
-          [0, 1, 2, 3, 4, 5, 6].map(wd => {
+          [1, 2, 3, 4, 5, 6, 7].map(wd => {
             const existing = s.find(e => e.weekday === wd);
             return existing ?? { weekday: wd, startTime: '', endTime: '' };
           }),
@@ -86,7 +86,7 @@ export function AgendaPage() {
     setBlockLoading(true);
     const { from, to } = getFromTo();
     professionalsApi
-      .listBlocks(profId, from, to)
+      .listBlocks(profId, from!, to!)
       .then(r => setBlocks(r.blocks))
       .catch(setBlockError)
       .finally(() => setBlockLoading(false));
@@ -136,8 +136,8 @@ export function AgendaPage() {
     setBlockError(null);
     try {
       const { block } = await professionalsApi.createBlock(profId, {
-        startAt: new Date(blockForm.startAt).toISOString(),
-        endAt: new Date(blockForm.endAt).toISOString(),
+        startAt: new Date(`${blockForm.startAt}:00-03:00`).toISOString(),
+        endAt: new Date(`${blockForm.endAt}:00-03:00`).toISOString(),
         reason: blockForm.reason || undefined,
       });
       setBlocks(prev => [...prev, block]);
@@ -152,6 +152,7 @@ export function AgendaPage() {
   const deleteBlock = async (blockId: string) => {
     setBlockError(null);
     try {
+      if (!window.confirm('¿Querés eliminar este bloqueo?')) return;
       await professionalsApi.deleteBlock(profId, blockId);
       setBlocks(prev => prev.filter(b => b.id !== blockId));
     } catch (err) {
@@ -159,7 +160,7 @@ export function AgendaPage() {
     }
   };
 
-  const isPast = (iso: string) => new Date(iso) < new Date();
+  const isPast = (iso: string) => new Date(iso) <= new Date();
 
   return (
     <div className="page">
@@ -178,8 +179,8 @@ export function AgendaPage() {
       {tab === 'turnos' && (
         <div>
           {apptLoading && <LoadingSpinner />}
-          {apptError && <ErrorMessage error={apptError} />}
-          {actionError && <ErrorMessage error={actionError} />}
+          {Boolean(apptError) && <ErrorMessage error={apptError} />}
+          {Boolean(actionError) && <ErrorMessage error={actionError} />}
           {!apptLoading && appointments.length === 0 && (
             <div className="empty-state"><p>No tenés turnos asignados.</p></div>
           )}
@@ -217,14 +218,14 @@ export function AgendaPage() {
       {tab === 'horario' && (
         <div>
           {schedLoading && <LoadingSpinner />}
-          {schedError && <ErrorMessage error={schedError} />}
+          {Boolean(schedError) && <ErrorMessage error={schedError} />}
           {schedSaved && <div className="alert alert-success mb-2">Horario guardado correctamente.</div>}
           {!schedLoading && (
             <>
               <div className="card form-stack">
                 {schedDraft.map(entry => (
                   <div key={entry.weekday} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr', gap: '.75rem', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, fontSize: '.93rem' }}>{WEEKDAY_NAMES[entry.weekday]}</span>
+                    <span style={{ fontWeight: 600, fontSize: '.93rem' }}>{WEEKDAY_NAMES[entry.weekday % 7]}</span>
                     <input
                       className="form-input"
                       type="time"
@@ -253,13 +254,14 @@ export function AgendaPage() {
       {/* TAB: Bloqueos */}
       {tab === 'bloqueos' && (
         <div>
-          {blockError && <ErrorMessage error={blockError} />}
+          {Boolean(blockError) && <ErrorMessage error={blockError} />}
 
           <div className="card form-stack mb-2" style={{ maxWidth: 480 }}>
             <h4>Nuevo bloqueo</h4>
             <div className="form-group">
-              <label className="form-label">Desde</label>
+              <label className="form-label" htmlFor="block-start">Desde</label>
               <input
+                id="block-start"
                 className="form-input"
                 type="datetime-local"
                 value={blockForm.startAt}
@@ -267,8 +269,9 @@ export function AgendaPage() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Hasta</label>
+              <label className="form-label" htmlFor="block-end">Hasta</label>
               <input
+                id="block-end"
                 className="form-input"
                 type="datetime-local"
                 value={blockForm.endAt}
@@ -276,8 +279,9 @@ export function AgendaPage() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Motivo (opcional)</label>
+              <label className="form-label" htmlFor="block-reason">Motivo (opcional)</label>
               <input
+                id="block-reason"
                 className="form-input"
                 type="text"
                 value={blockForm.reason}

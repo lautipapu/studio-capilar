@@ -62,11 +62,12 @@ export function BookingPage() {
   const [error, setError] = useState<unknown>(null);
 
   // Max date: 30 days from now
-  const today = new Date();
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + 30);
-  const minDateStr = today.toISOString().split('T')[0];
-  const maxDateStr = maxDate.toISOString().split('T')[0];
+  const minDateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+  const maxDate = new Date(`${minDateStr}T12:00:00Z`);
+  maxDate.setUTCDate(maxDate.getUTCDate() + 30);
+  const maxDateStr = maxDate.toISOString().slice(0, 10);
 
   useEffect(() => {
     if (!user || user.role !== 'cliente') { navigate('/ingreso'); return; }
@@ -87,7 +88,7 @@ export function BookingPage() {
     setLoading(true);
     professionalsApi
       .list()
-      .then(r => setProfessionals(r.professionals.filter(p => p.active)))
+      .then(r => setProfessionals(r.professionals.filter(p => p.active !== false)))
       .catch(setError)
       .finally(() => setLoading(false));
     setStep('professional');
@@ -120,6 +121,11 @@ export function BookingPage() {
   };
 
   const confirm = async () => {
+    if (!slots.includes(selectedSlot)) {
+      setError(new Error('Elegí un horario disponible de la lista.'));
+      setStep('slot');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -134,6 +140,16 @@ export function BookingPage() {
       if (err instanceof ApiError && err.code === 'OVERLAP') {
         setError(err);
         setSelectedSlot('');
+        try {
+          const fresh = await professionalsApi.availability(
+            selectedProfessional!.id,
+            selectedService!.id,
+            selectedDate,
+          );
+          setSlots(fresh.slots);
+        } catch {
+          // Preserve the conflict response if availability cannot be refreshed.
+        }
         setStep('slot'); // back to slot selection
       } else {
         setError(err);
@@ -150,6 +166,13 @@ export function BookingPage() {
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
           <h2>¡Turno confirmado!</h2>
           <p className="mt-2">Tu turno fue reservado exitosamente. Podés verlo en Mis turnos.</p>
+          <p className="text-muted text-sm">Código de reserva: {createdId}</p>
+          <div className="card form-stack mt-2" style={{ textAlign: 'left' }}>
+            <div className="flex-between"><span className="text-muted">Servicio</span><strong>{selectedService?.name}</strong></div>
+            <div className="flex-between"><span className="text-muted">Profesional</span><strong>{selectedProfessional?.name}</strong></div>
+            <div className="flex-between"><span className="text-muted">Fecha y hora</span><strong>{selectedDate} · {formatTime(selectedSlot)}</strong></div>
+            <div className="flex-between"><span className="text-muted">Precio</span><strong>{formatPrice(selectedService?.priceCents ?? 0)}</strong></div>
+          </div>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
             <button className="btn btn-primary" onClick={() => navigate('/mis-turnos')}>
               Ver mis turnos
@@ -179,7 +202,7 @@ export function BookingPage() {
       <StepIndicator current={step} />
 
       {loading && <LoadingSpinner />}
-      {error && !loading && (
+      {Boolean(error) && !loading && (
         <div style={{ marginBottom: '1rem' }}>
           <ErrorMessage error={error} />
           {step === 'slot' && (
@@ -206,7 +229,7 @@ export function BookingPage() {
                   <h3 className="card-title">{s.name}</h3>
                   <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{formatPrice(s.priceCents)}</span>
                 </div>
-                <p className="card-subtitle mt-1">{s.durationMin} minutos</p>
+                <p className="card-subtitle mt-1">{s.durationMinutes} minutos</p>
               </div>
             ))}
           </div>
@@ -254,8 +277,9 @@ export function BookingPage() {
             <button className="btn btn-ghost btn-sm" onClick={() => setStep('professional')}>← Volver</button>
           </div>
           <div className="form-group">
-            <label className="form-label">Fecha del turno</label>
+            <label className="form-label" htmlFor="booking-date">Fecha del turno</label>
             <input
+              id="booking-date"
               className="form-input"
               type="date"
               min={minDateStr}

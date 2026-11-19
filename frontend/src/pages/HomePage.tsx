@@ -16,8 +16,8 @@ export function HomePage() {
   useEffect(() => {
     Promise.all([servicesApi.list(), professionalsApi.list()])
       .then(([sRes, pRes]) => {
-        setServices(sRes.services.filter(s => s.active));
-        setProfessionals(pRes.professionals.filter(p => p.active));
+        setServices(sRes.services.filter(s => s.active !== false));
+        setProfessionals(pRes.professionals.filter(p => p.active !== false));
       })
       .catch(setError)
       .finally(() => setLoading(false));
@@ -56,7 +56,7 @@ export function HomePage() {
           <p className="section-subtitle">Elegí el servicio que más te gusta.</p>
 
           {loading && <LoadingSpinner />}
-          {error && <ErrorMessage error={error} />}
+          {Boolean(error) && <ErrorMessage error={error} />}
 
           {!loading && !error && services.length === 0 && (
             <div className="empty-state"><p>No hay servicios disponibles por el momento.</p></div>
@@ -71,7 +71,7 @@ export function HomePage() {
                     {formatPrice(s.priceCents)}
                   </span>
                 </div>
-                <p className="card-subtitle">{s.durationMin} minutos</p>
+                <p className="card-subtitle">{s.durationMinutes} minutos</p>
               </div>
             ))}
           </div>

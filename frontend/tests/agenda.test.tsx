@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+﻿import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../src/auth';
 import { AgendaPage } from '../src/pages/AgendaPage';
@@ -12,7 +12,7 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => vi.fn() };
 });
 
-const profUser = { id: 'p1', name: 'María Gómez', email: 'maria@test.com', role: 'profesional' as const };
+const profUser = { id: 'p1', professionalId: 'p1', name: 'María Gómez', email: 'maria@test.com', role: 'profesional' as const };
 const clientUser = { id: 'u1', name: 'Ana López', email: 'ana@test.com', role: 'cliente' as const };
 
 beforeEach(() => {
@@ -133,3 +133,4 @@ describe('AgendaPage', () => {
     });
   });
 });
+

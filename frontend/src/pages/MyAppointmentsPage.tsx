@@ -31,9 +31,7 @@ export function MyAppointmentsPage() {
     setCancelling(true);
     try {
       await appointmentsApi.cancel(cancelTarget.id);
-      setAppointments(prev =>
-        prev.map(a => a.id === cancelTarget.id ? { ...a, status: 'cancelado' } : a),
-      );
+      setAppointments(prev => prev.filter(a => a.id !== cancelTarget.id));
       setCancelTarget(null);
     } catch (err) {
       setCancelError(err);
@@ -49,7 +47,7 @@ export function MyAppointmentsPage() {
       <h1 style={{ marginBottom: '.5rem' }}>Mis turnos</h1>
       <p className="mb-2">Hola, {user?.name?.split(' ')[0]}. Acá están todos tus turnos.</p>
 
-      {error && <ErrorMessage error={error} />}
+      {Boolean(error) && <ErrorMessage error={error} />}
 
       {appointments.length === 0 && !error && (
         <div className="empty-state">
@@ -101,7 +99,7 @@ export function MyAppointmentsPage() {
           onCancel={() => { setCancelTarget(null); setCancelError(null); }}
           dangerous
         >
-          {cancelError && <ErrorMessage error={cancelError} />}
+          {Boolean(cancelError) && <ErrorMessage error={cancelError} />}
         </ConfirmModal>
       )}
     </div>

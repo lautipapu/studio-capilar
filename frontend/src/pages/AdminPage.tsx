@@ -42,7 +42,7 @@ function ServicesTab() {
     try {
       const { service } = await servicesApi.create({
         name: form.name.trim(),
-        durationMin: Number(form.durationMin),
+        durationMinutes: Number(form.durationMin),
         priceCents: Math.round(Number(form.priceCents) * 100),
       });
       setServices(prev => [...prev, service]);
@@ -52,6 +52,8 @@ function ServicesTab() {
   };
 
   const toggleActive = async (s: Service) => {
+    const action = s.active ? 'desactivar' : 'activar';
+    if (!window.confirm(`¿Querés ${action} el servicio ${s.name}?`)) return;
     try {
       const { service } = await servicesApi.update(s.id, { active: !s.active });
       setServices(prev => prev.map(x => x.id === s.id ? service : x));
@@ -62,10 +64,10 @@ function ServicesTab() {
 
   return (
     <div>
-      {error && <ErrorMessage error={error} />}
+      {Boolean(error) && <ErrorMessage error={error} />}
       <div className="card form-stack mb-2" style={{ maxWidth: 480 }}>
         <h4>Nuevo servicio</h4>
-        {formError && <ErrorMessage error={formError} />}
+        {Boolean(formError) && <ErrorMessage error={formError} />}
         <div className="form-group">
           <label className="form-label">Nombre</label>
           <input className="form-input" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
@@ -92,7 +94,7 @@ function ServicesTab() {
             {services.map(s => (
               <tr key={s.id}>
                 <td>{s.name}</td>
-                <td>{s.durationMin} min</td>
+                <td>{s.durationMinutes} min</td>
                 <td>{formatPrice(s.priceCents)}</td>
                 <td><span className={`badge ${s.active ? 'badge-active' : 'badge-inactive'}`}>{s.active ? 'Activo' : 'Inactivo'}</span></td>
                 <td><button className="btn btn-outline btn-sm" onClick={() => toggleActive(s)}>{s.active ? 'Desactivar' : 'Activar'}</button></td>
@@ -121,7 +123,7 @@ function ProfessionalsTab() {
   const [schedSaved, setSchedSaved] = useState(false);
 
   useEffect(() => {
-    professionalsApi.list()
+    professionalsApi.list(true)
       .then(r => setProfessionals(r.professionals))
       .catch(setError)
       .finally(() => setLoading(false));
@@ -134,13 +136,15 @@ function ProfessionalsTab() {
         name: form.name.trim(), email: form.email.trim(),
         password: form.password, phone: form.phone.trim() || undefined,
       });
-      setProfessionals(prev => [...prev, professional]);
+      setProfessionals(prev => [...prev, { ...professional, active: true }]);
       setForm({ name: '', email: '', password: '', phone: '' });
     } catch (err) { setFormError(err); }
     finally { setSaving(false); }
   };
 
   const toggleActive = async (p: Professional) => {
+    const action = p.active ? 'desactivar' : 'activar';
+    if (!window.confirm(`¿Querés ${action} a ${p.name}?`)) return;
     try {
       const { professional } = await professionalsApi.update(p.id, { active: !p.active });
       setProfessionals(prev => prev.map(x => x.id === p.id ? professional : x));
@@ -153,7 +157,7 @@ function ProfessionalsTab() {
     professionalsApi.get(p.id).then(r => {
       const s = r.professional.schedule ?? [];
       setSchedDraft(
-        [0,1,2,3,4,5,6].map(wd => s.find(e => e.weekday === wd) ?? { weekday: wd, startTime: '', endTime: '' }),
+        [1,2,3,4,5,6,7].map(wd => s.find(e => e.weekday === wd) ?? { weekday: wd, startTime: '', endTime: '' }),
       );
     });
   };
@@ -174,7 +178,7 @@ function ProfessionalsTab() {
 
   return (
     <div>
-      {error && <ErrorMessage error={error} />}
+      {Boolean(error) && <ErrorMessage error={error} />}
 
       {editSched && editingProf && (
         <div className="card form-stack mb-2" style={{ maxWidth: 480 }}>
@@ -182,11 +186,11 @@ function ProfessionalsTab() {
             <h4>Horario de {editingProf.name}</h4>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditSched(null)}>✕ Cerrar</button>
           </div>
-          {schedError && <ErrorMessage error={schedError} />}
+          {Boolean(schedError) && <ErrorMessage error={schedError} />}
           {schedSaved && <div className="alert alert-success">Horario guardado.</div>}
           {schedDraft.map(entry => (
             <div key={entry.weekday} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr', gap: '.5rem', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, fontSize: '.88rem' }}>{WEEKDAY_NAMES[entry.weekday]}</span>
+              <span style={{ fontWeight: 600, fontSize: '.88rem' }}>{WEEKDAY_NAMES[entry.weekday % 7]}</span>
               <input className="form-input" type="time" value={entry.startTime}
                 onChange={e => setSchedDraft(prev => prev.map(x => x.weekday === entry.weekday ? { ...x, startTime: e.target.value } : x))} />
               <input className="form-input" type="time" value={entry.endTime}
@@ -201,7 +205,7 @@ function ProfessionalsTab() {
 
       <div className="card form-stack mb-2" style={{ maxWidth: 480 }}>
         <h4>Nuevo profesional</h4>
-        {formError && <ErrorMessage error={formError} />}
+        {Boolean(formError) && <ErrorMessage error={formError} />}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
           <div className="form-group">
             <label className="form-label">Nombre</label>
@@ -257,13 +261,15 @@ function ClientsTab() {
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
-    clientsApi.list()
+    clientsApi.list(true)
       .then(r => setClients(r.clients))
       .catch(setError)
       .finally(() => setLoading(false));
   }, []);
 
   const toggle = async (c: Client) => {
+    const action = c.active ? 'desactivar' : 'activar';
+    if (!window.confirm(`¿Querés ${action} la cuenta de ${c.name}?`)) return;
     try {
       const { client } = await clientsApi.update(c.id, { active: !c.active });
       setClients(prev => prev.map(x => x.id === c.id ? client : x));
@@ -274,7 +280,7 @@ function ClientsTab() {
 
   return (
     <div>
-      {error && <ErrorMessage error={error} />}
+      {Boolean(error) && <ErrorMessage error={error} />}
       {clients.length === 0 && <div className="empty-state"><p>No hay clientes registrados.</p></div>}
       <div className="table-wrap">
         <table>
@@ -311,6 +317,7 @@ function AppointmentsTab() {
   }, []);
 
   const cancel = async (id: string) => {
+    if (!window.confirm('¿Querés cancelar este turno?')) return;
     try {
       const { appointment } = await appointmentsApi.cancel(id);
       setAppointments(prev => prev.map(a => a.id === id ? appointment : a));
@@ -321,7 +328,7 @@ function AppointmentsTab() {
 
   return (
     <div>
-      {error && <ErrorMessage error={error} />}
+      {Boolean(error) && <ErrorMessage error={error} />}
       {appointments.length === 0 && <div className="empty-state"><p>No hay turnos.</p></div>}
       <div className="table-wrap">
         <table>

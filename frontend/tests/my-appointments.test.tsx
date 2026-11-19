@@ -76,7 +76,7 @@ describe('MyAppointmentsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sí, cancelar/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Cancelado')).toBeInTheDocument();
+      expect(screen.queryByText('Corte de cabello')).not.toBeInTheDocument();
     });
   });
 
