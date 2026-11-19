@@ -1,6 +1,64 @@
 import bcrypt from "bcryptjs";
-import "dotenv/config";
+import dotenv from "dotenv";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createPool } from "./pool.js";
+
+export const BACKEND_ENV_PATH = fileURLToPath(new URL("../../.env", import.meta.url));
+dotenv.config({ path: BACKEND_ENV_PATH });
+
+function databaseTarget(connectionString: string): {
+  protocol: string;
+  host: string;
+  port: string;
+  database: string;
+} {
+  const url = new URL(connectionString);
+  if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") {
+    throw new Error("DATABASE_URL_TEST debe contener una URL de PostgreSQL válida.");
+  }
+  return {
+    protocol: "postgresql:",
+    host: url.hostname.toLowerCase(),
+    port: url.port || "5432",
+    database: decodeURIComponent(url.pathname.replace(/^\/+/, "")),
+  };
+}
+
+export function resolveTestSeedUrl(env: NodeJS.ProcessEnv = process.env): string {
+  const testUrl = env.DATABASE_URL_TEST?.trim();
+  if (!testUrl) {
+    throw new Error("seed:test requiere que DATABASE_URL_TEST esté definida.");
+  }
+
+  let testTarget: ReturnType<typeof databaseTarget>;
+  try {
+    testTarget = databaseTarget(testUrl);
+  } catch {
+    throw new Error("DATABASE_URL_TEST debe contener una URL de PostgreSQL válida.");
+  }
+
+  const primaryUrl = env.DATABASE_URL?.trim();
+  if (primaryUrl) {
+    let primaryTarget: ReturnType<typeof databaseTarget>;
+    try {
+      primaryTarget = databaseTarget(primaryUrl);
+    } catch {
+      throw new Error("No se pudo verificar que DATABASE_URL_TEST sea distinta de DATABASE_URL.");
+    }
+
+    const sameTarget =
+      testTarget.protocol === primaryTarget.protocol &&
+      testTarget.host === primaryTarget.host &&
+      testTarget.port === primaryTarget.port &&
+      testTarget.database === primaryTarget.database;
+    if (sameTarget) {
+      throw new Error("seed:test se detuvo porque DATABASE_URL_TEST coincide con DATABASE_URL.");
+    }
+  }
+
+  return testUrl;
+}
 
 export async function runSeed(
   connectionString?: string,
@@ -142,13 +200,15 @@ export async function runSeed(
   }
 }
 
-// Ejecución directa CLI
+// Ejecución directa CLI; la bandera --test es el único modo que usa DATABASE_URL_TEST.
 const isDirectCall =
-  process.argv[1] &&
-  (process.argv[1].endsWith("seed.ts") || process.argv[1].endsWith("seed.js"));
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isDirectCall) {
-  runSeed()
+  const testMode = process.argv.includes("--test");
+  const connectionString = testMode ? resolveTestSeedUrl() : undefined;
+
+  runSeed(connectionString)
     .then(() => {
       console.log("Semilla completada exitosamente.");
       process.exit(0);

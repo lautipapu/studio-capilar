@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { defineConfig } from "vitest/config";
 
 // Cargar .env de la raíz del monorepo
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 export default defineConfig({
   test: {
